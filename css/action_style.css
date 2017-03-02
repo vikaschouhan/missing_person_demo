@@ -1,0 +1,18 @@
+body {
+  margin: auto;
+  background-image: url("imgs/background.jpg");
+  font-family: 'Open Sans', sans-serif;
+}
+
+h1 {
+  font-size: 18px;
+  line-height: 20px;
+  text-align: center;
+}
+
+h1.cred {
+  font-size: 18px;
+  line-height: 20px;
+  text-align: center;
+  color: red;
+}
