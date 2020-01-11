@@ -16,8 +16,8 @@ function rekognitionClient(){
                   "region"  => "us-west-2",
                   "version" => "latest",
                   "credentials" => [
-                          "key"     => "AKIAJZNQ22VSKLSURLPA",
-                          "secret"  => "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"
+                          "key"     => "AKIAI4YM4HDJYM6DSDPQ",
+                          "secret"  => "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"
                       ],
               ]);
     return $client;

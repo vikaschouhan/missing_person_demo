@@ -57,7 +57,9 @@ Currently, this package works with the public stream and the user stream. Both t
 
 ### The public stream
 
-The public stream can be used to listen for specific words that are being tweeted or to follow one or more users tweets.
+The public stream can be used to listen for specific words that are being tweeted, receive Tweets that are being sent from specific locations or to follow one or more users tweets.
+
+#### Listen for Tweets containing specific words
 
 The first parameter of `whenHears` must be a string or an array containing the word or words you want to listen for. The second parameter should be a callable that will be executed when one of your words is used on Twitter.
 
@@ -72,7 +74,44 @@ PublicStream::create(
 })->startListening();
 ```
 
-The first parameter of `whenTweets` must be a string or an array containing the Twitter user ID or ID's you wish to follow. The second parameter should be a callable that will be executed when one of your followed users tweets.  Only public information relating to the Twitter user will be available.
+#### Listen for Tweets from specific locations
+
+The first parameter of `whenFrom` must be an array containing one or more bounding boxes, each as an array of 4 element lon/lat pairs (looking like `[<south-west point longitude>, <south-west point latitude>, <north-east point longitude>,  <north-east point latitude>]`). The second parameter should be a callable that will be executed when a Tweet from one of your tracked locations is being sent.
+
+**Track all tweets from San Francisco or New York:**
+
+```php
+PublicStream::create(
+    $accessToken,
+    $accessTokenSecret,
+    $consumerKey,
+    $consumerSecret
+)->whenFrom([
+    [-122.75, 36.8, -121.75, 37.8], // San Francisco
+    [-74, 40, -73, 41],             // New York
+], function(array $tweet) {
+        echo "{$tweet['user']['screen_name']} just tweeted {$tweet['text']} from SF or NYC";
+})->startListening();
+```
+
+**Track all tweets with a location (from all over the world):**
+
+```php
+PublicStream::create(
+    $accessToken,
+    $accessTokenSecret,
+    $consumerKey,
+    $consumerSecret
+)->whenFrom([
+        [-180, -90, 180, 90] // Whole world
+], function(array $tweet) {
+    echo "{$tweet['user']['screen_name']} just tweeted {$tweet['text']} with a location attached";
+})->startListening();
+```
+
+#### Listen for Tweets from specific users
+
+The first parameter of `whenTweets` must be a string or an array containing the Twitter user ID or IDs you wish to follow. The second parameter should be a callable that will be executed when one of your followed users tweets. Only public information relating to the Twitter user will be available.
 
 ```php
 PublicStream::create(
@@ -84,6 +123,38 @@ PublicStream::create(
     echo "{$tweet['user']['screen_name']} just tweeted {$tweet['text']}";
 })->startListening();
 ```
+
+## Check filter predicates
+
+In most cases your script will interacts with the Twitter streaming API as a daemon. If you want to change the filters while it is running you can pass a callable to `checkFilterPredicates`. That callable will be called every ~5 seconds.
+
+Here's an example:
+
+```php
+PublicStream::create(
+    $accessToken,
+    $accessTokenSecret,
+    $consumerKey,
+    $consumerSecret
+)->whenHears('@spatie_be', function(array $tweet) {
+    echo "We got mentioned by {$tweet['user']['screen_name']} who tweeted {$tweet['text']}";
+})->checkFilterPredicates(function($stream) {
+    $trackIds = ExternalStorage::get('TwitterTrackIds');
+    if ($trackIds != $stream->getTrack()) {
+        $stream->setTrack($trackIds);
+    }
+})->startListening();
+```
+
+If you run in an external script something like
+
+```php
+ExternalStorage::set('TwitterTrackIds', ['@spatie_be', '@laravelphp'])
+```
+
+then the method in the example above will change the filter predicates and reconnect to the Twitter streaming API.
+
+ `ExternalStorage::get/set` is just a dummy example. In real apps you'll probably use a file, in memory cache or db for this.
 
 ### The user stream
 
