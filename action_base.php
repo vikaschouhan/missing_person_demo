@@ -95,7 +95,8 @@ function displayFaceSearchResultsAsTable($result){
     global $index_dir_img_src;
 
     // Get databse handle
-    global $db_name;
+	global $db_name;
+	createDbDir($db_name);
     $dbase_backend = new SQLiteBackend($db_name);
 
     // emit html for table header
@@ -233,6 +234,10 @@ function tryFileUpload($f_ptr, $mode, $display=False){
     }else{
         dumpVar("Fatal error in server code !!\r\n");
         return;
+	}
+
+	if (!file_exists($upload_dir_this)) {
+        mkdir($upload_dir_this, 0777, true);
     }
 
     $target_file_name = basename($f_ptr["name"]);
@@ -293,7 +298,8 @@ function addPersonAction($post_arr, $files_arr){
 
     if ($data != NULL){
         // Add the entry to sqlite dbase
-        global $db_name;
+		global $db_name;
+        createDbDir($db_name);
         $dbase_backend = new SQLiteBackend($db_name);
         $sql_result    = $dbase_backend->add_record($sql_darray);
 
@@ -583,6 +589,13 @@ function inquireTwitterCallbackProcess(){
         echo '<h2 class="intro-text text-center">Twitter callback is running with pid : ' . implode(',', $pid_arr) . '</h2>';
     }else{
         echo '<h2 class="intro-text text-center">No Running Twitter callback instance found.</h2>';
+    }
+}
+
+function createDbDir($db_name){
+	$db_dir = dirname($db_name);
+	if (!file_exists($db_dir)) {
+        mkdir($db_dir, 0777, true);
     }
 }
 
